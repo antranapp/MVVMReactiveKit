@@ -9,8 +9,15 @@ class ImageListViewModel: ViewModel {
 
     // MARK: Properties
 
+    // Public
+
     var searchTerm = Property<String?>(nil)
     var imageList = Property(ImageList(total: 0, totalHits: 0, hits: []))
+
+    let activty = Subject<Bool, Never>()
+    
+    // Private
+
     private let disposeBag = DisposeBag()
 
     // MARK: APIs
@@ -31,13 +38,17 @@ class ImageListViewModel: ViewModel {
     }
 
     func fetchImage(searchTerm: String) {
+        activty.next(true)
         pixelBayService.fetch(searchTerm: searchTerm)
             .done { [weak self] imageList in
                 self?.imageList.value = imageList
             }
             .catch { error in
                 print(error)
-        }
+            }
+            .finally {
+                self.activty.next(false)
+            }
     }
 }
 
